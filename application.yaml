@@ -1,0 +1,23 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    username: root
+    password: 12345678
+    url: jdbc:mysql://:3306/search_engine?useSSL=false&requireSSL=false&allowPublicKeyRetrieval=true
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        hbm2ddl:
+          auto: create
+        show_sql: true
+indexing-settings:
+  sites:
+    - url: https://et-cetera.ru/mobile/
+      name: EtCetera
+    - url: http://www.playback.ru/
+      name: Playback
+    - url: https://www.svetlovka.ru/
+      name: Svetlovka
