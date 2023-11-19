@@ -29,7 +29,6 @@ public class StatisticsServiceImpl implements StatisticsService {
     private final SiteRepository siteRepository;
     private final PageRepository pageRepository;
     private final LemmaRepository lemmaRepository;
-    private boolean indexed;
 
     @Override
     public StatisticsResponse getStatistics() {

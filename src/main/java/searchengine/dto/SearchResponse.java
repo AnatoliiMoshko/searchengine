@@ -1,7 +1,6 @@
 package searchengine.dto;
 
 import lombok.*;
-import searchengine.dto.SearchData;
 
 import java.util.List;
 

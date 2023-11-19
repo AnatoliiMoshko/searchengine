@@ -25,7 +25,6 @@ public class PageParser {
     private final SiteRepository siteRepository;
     private final LemmaRepository lemmaRepository;
     private final IndexRepository indexRepository;
-    private Document document;
     private boolean contains;
 
     public void parsePage() {
@@ -54,7 +53,7 @@ public class PageParser {
                 .referrer("https://www.google.com");
 
         try {
-            document = connection.execute().parse();
+            Document document = connection.execute().parse();
             page = new PageEntity();
             page.setSiteID(site);
             page.setPath(url);

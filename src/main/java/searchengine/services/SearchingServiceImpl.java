@@ -46,7 +46,7 @@ public class SearchingServiceImpl implements SearchingService {
 
         LinkedHashMap<String, Integer> lemmasSortedByFrequency = sortLemmasByFrequency(lemmasFromQuery);
 
-        SearchResponse searchResponse = new SearchResponse();
+        SearchResponse searchResponse;
 
         LinkedHashMap<LemmaEntity, PageEntity> entitiesList = new LinkedHashMap<>();
 
@@ -93,6 +93,7 @@ public class SearchingServiceImpl implements SearchingService {
 
     private List<SearchData> generateSearchDataList(LinkedHashMap<PageEntity, Integer> sortedPages,
                                                     Set<String> lemmasFromQuery, int limit, int offset) {
+        limit = 100;
         if (offset != 0 && !sortedPages.isEmpty()) {
             sortedPages.remove(sortedPages.keySet().stream().findFirst().get());
         }

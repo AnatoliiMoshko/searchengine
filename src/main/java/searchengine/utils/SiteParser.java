@@ -8,10 +8,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import searchengine.model.LemmaEntity;
-import searchengine.model.PageEntity;
-import searchengine.model.SearchIndex;
-import searchengine.model.SiteEntity;
+import searchengine.model.*;
 import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.IndexRepository;
@@ -55,7 +52,7 @@ public class SiteParser extends RecursiveAction {
             List<LemmaEntity> lemmaEntityList = new ArrayList<>();
             List<SearchIndex> searchIndexList = new ArrayList<>();
 
-            for(Map.Entry<String, Integer> lemma:lemmas.entrySet()){
+            for(Map.Entry<String, Integer> lemma : lemmas.entrySet()){
 
                 LemmaEntity lemmaEntity = new LemmaEntity();
                 lemmaEntity.setSiteID(site);
@@ -78,10 +75,8 @@ public class SiteParser extends RecursiveAction {
 
         List<String> links = collectLinks(url);
         List<SiteParser> tasks = new ArrayList<>();
-        for (String link : links)
-        {
-            if (!hrefList.contains(link) && !links.isEmpty())
-            {
+        for (String link : links) {
+            if (!hrefList.contains(link) && !links.isEmpty()) {
                 SiteParser siteParser = new SiteParser(
                         link,
                         hrefList,
@@ -96,9 +91,7 @@ public class SiteParser extends RecursiveAction {
                 tasks.add(siteParser);
             }
         }
-
-        for (SiteParser task : tasks)
-        {
+        for (SiteParser task : tasks) {
             task.join();
         }
     }
@@ -109,27 +102,17 @@ public class SiteParser extends RecursiveAction {
         linkList.add(url);
 
         Elements links = document.select("a[href]");
-
         for (Element element : links) {
             String link = element.attr("abs:href");
-
-            if (!link.startsWith(url)) {
-                continue;
-            }
-            if (link.contains("#")) {
-                continue;
-            }
+            if (!link.startsWith(url)) continue;
+            if (link.contains("#")) continue;
             if (link.endsWith(".shtml") ||
                     link.endsWith(".pdf") ||
                     link.endsWith(".xml") ||
                     link.endsWith("?main_click") ||
                     link.contains("?page=") ||
-                    link.contains("?ref")) {
-                continue;
-            }
-            if (linkList.contains(link)) {
-                continue;
-            }
+                    link.contains("?ref")) continue;
+            if (linkList.contains(link)) continue;
             linkList.add(link);
         }
         return linkList;

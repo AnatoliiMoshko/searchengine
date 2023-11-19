@@ -27,7 +27,6 @@ public class IndexingServiceImpl implements IndexingService {
     private final PageRepository pageRepository;
     private final LemmaRepository lemmaRepository;
     private final IndexRepository indexRepository;
-    private boolean started;
     private boolean contains;
     private SiteEntity siteEntity;
     private ForkJoinPool forkJoinPool;
@@ -35,41 +34,47 @@ public class IndexingServiceImpl implements IndexingService {
     @Override
     @SneakyThrows
     public IndexingResponse startIndexing() {
-        if (started) {
+        if(isIndexing()) {
             return new IndexingResponse(false, "Индексация уже запущена");
         } else {
-            started = true;
-        }
-        indexRepository.deleteAll();
-        lemmaRepository.deleteAll();
-        pageRepository.deleteAll();
-        siteRepository.deleteAll();
+            indexRepository.deleteAll();
+            lemmaRepository.deleteAll();
+            pageRepository.deleteAll();
+            siteRepository.deleteAll();
 
-        for (Site site : sites.getSites()) {
-            indexSite(site);
+            for (Site site : sites.getSites()) {
+                indexSite(site);
+            }
         }
-        started = false;
-        return new IndexingResponse(true);
+        return new IndexingResponse(true, "");
+    }
+
+    public boolean isIndexing() {
+        Iterable<SiteEntity> siteList = siteRepository.findAll();
+        for (SiteEntity site : siteList) {
+            if (site.getStatus().equals(Status.INDEXING)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
     public IndexingResponse stopIndexing() {
-        if (!started) {
-            return new IndexingResponse(false, "Индексация не запущена");
-        } else {
-            started = false;
-        }
-        forkJoinPool.shutdownNow();
-        Iterable<SiteEntity> siteList = siteRepository.findAll();
-        for (SiteEntity site : siteList) {
-            if (site.getStatus() == Status.INDEXING) {
-                site.setStatus(Status.FAILED);
-                site.setStatusTime(LocalDateTime.now());
-                site.setLastError("Процесс индексации остановлен");
-                siteRepository.save(site);
+        if(!isIndexing()) {
+            forkJoinPool.shutdownNow();
+            Iterable<SiteEntity> siteList = siteRepository.findAll();
+            for (SiteEntity site : siteList) {
+                if (site.getStatus().equals(Status.INDEXING)) {
+                    site.setStatus(Status.FAILED);
+                    site.setStatusTime(LocalDateTime.now());
+                    site.setLastError("Процесс индексации остановлен");
+                    siteRepository.save(site);
+                }
             }
+            return new IndexingResponse(true, "Процесс индексации остановлен");
         }
-        return new IndexingResponse(true);
+        return new IndexingResponse(false, "Индексация не запущена");
     }
 
     @Override
@@ -123,11 +128,11 @@ public class IndexingServiceImpl implements IndexingService {
         siteEntity.setStatusTime(LocalDateTime.now());
         siteRepository.save(siteEntity);
 
-        TreeSet<String> urlList = new TreeSet<>();
-        urlList.add(site.getUrl());
+        TreeSet<String> hrefList = new TreeSet<>();
+        hrefList.add(site.getUrl());
 
         forkJoinPool = new ForkJoinPool(Runtime.getRuntime().availableProcessors());
-        SiteParser siteParser = new SiteParser(site.getUrl(), urlList, siteEntity,
+        SiteParser siteParser = new SiteParser(site.getUrl(), hrefList, siteEntity,
                 pageRepository, siteRepository, lemmaRepository, indexRepository);
         forkJoinPool.execute(siteParser);
         forkJoinPool.shutdown();

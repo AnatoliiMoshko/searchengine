@@ -26,7 +26,7 @@ public class SnippetGenerator {
     public void setText(String text) {
         this.text = Jsoup
                 .clean(text, Safelist.simpleText())
-                .replaceAll("[^А-Яа-яЁё\\d\\s,.!]+", " ")
+                .replaceAll("[^A-za-zА-Яа-яЁё\\d\\s,.!]+", " ")
                 .replaceAll("\\s+", " ");
     }
 
