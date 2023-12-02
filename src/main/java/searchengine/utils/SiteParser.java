@@ -14,6 +14,7 @@ import searchengine.repositories.PageRepository;
 import searchengine.repositories.IndexRepository;
 import searchengine.repositories.SiteRepository;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.RecursiveAction;
 
@@ -21,7 +22,7 @@ import java.util.concurrent.RecursiveAction;
 public class SiteParser extends RecursiveAction {
     private final String url;
     private final TreeSet<String> hrefList;
-    private final SiteEntity site;
+    private final SiteEntity siteEntity;
     private final PageRepository pageRepository;
     private final SiteRepository siteRepository;
     private final LemmaRepository lemmaRepository;
@@ -41,7 +42,7 @@ public class SiteParser extends RecursiveAction {
         try {
             document = connection.execute().parse();
             PageEntity page = new PageEntity();
-            page.setSiteID(site);
+            page.setSiteID(siteEntity);
             page.setPath(url);
             page.setContent(String.valueOf(document));
             page.setCode(connection.response().statusCode());
@@ -55,7 +56,7 @@ public class SiteParser extends RecursiveAction {
             for(Map.Entry<String, Integer> lemma : lemmas.entrySet()){
 
                 LemmaEntity lemmaEntity = new LemmaEntity();
-                lemmaEntity.setSiteID(site);
+                lemmaEntity.setSiteID(siteEntity);
                 lemmaEntity.setLemma(lemma.getKey());
                 lemmaEntity.setFrequency(lemma.getValue());
                 lemmaEntityList.add(lemmaEntity);
@@ -68,6 +69,7 @@ public class SiteParser extends RecursiveAction {
             }
             lemmaRepository.saveAll(lemmaEntityList);
             indexRepository.saveAll(searchIndexList);
+
         }
         catch (HttpStatusException e) {
             System.out.println(url + " can't be parsed");
@@ -80,7 +82,7 @@ public class SiteParser extends RecursiveAction {
                 SiteParser siteParser = new SiteParser(
                         link,
                         hrefList,
-                        site,
+                        siteEntity,
                         pageRepository,
                         siteRepository,
                         lemmaRepository,
@@ -94,6 +96,9 @@ public class SiteParser extends RecursiveAction {
         for (SiteParser task : tasks) {
             task.join();
         }
+        siteEntity.setStatus(Status.INDEXING);
+        siteEntity.setStatusTime(LocalDateTime.now());
+        siteRepository.save(siteEntity);
     }
 
     @SneakyThrows

@@ -13,9 +13,4 @@ public class SearchResponse {
     private String error;
     private Integer count;
     private List<SearchData> data;
-
-    public SearchResponse(boolean result, String error) {
-        this.result = result;
-        this.error = error;
-    }
 }

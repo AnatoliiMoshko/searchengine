@@ -12,7 +12,6 @@ import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.IndexRepository;
 import searchengine.repositories.SiteRepository;
-import searchengine.utils.PageParser;
 import searchengine.utils.SiteParser;
 
 import java.time.LocalDateTime;
@@ -34,14 +33,15 @@ public class IndexingServiceImpl implements IndexingService {
     @Override
     @SneakyThrows
     public IndexingResponse startIndexing() {
+        indexRepository.deleteAll();
+        lemmaRepository.deleteAll();
+        pageRepository.deleteAll();
+        siteRepository.deleteAll();
+
         if(isIndexing()) {
             return new IndexingResponse(false, "Индексация уже запущена");
-        } else {
-            indexRepository.deleteAll();
-            lemmaRepository.deleteAll();
-            pageRepository.deleteAll();
-            siteRepository.deleteAll();
-
+        }
+        else {
             for (Site site : sites.getSites()) {
                 indexSite(site);
             }
@@ -49,32 +49,23 @@ public class IndexingServiceImpl implements IndexingService {
         return new IndexingResponse(true, "");
     }
 
-    public boolean isIndexing() {
-        Iterable<SiteEntity> siteList = siteRepository.findAll();
-        for (SiteEntity site : siteList) {
-            if (site.getStatus().equals(Status.INDEXING)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     @Override
     public IndexingResponse stopIndexing() {
         if(!isIndexing()) {
+            return new IndexingResponse(false, "Индексация не запущена");
+        } else {
             forkJoinPool.shutdownNow();
             Iterable<SiteEntity> siteList = siteRepository.findAll();
-            for (SiteEntity site : siteList) {
-                if (site.getStatus().equals(Status.INDEXING)) {
-                    site.setStatus(Status.FAILED);
-                    site.setStatusTime(LocalDateTime.now());
-                    site.setLastError("Процесс индексации остановлен");
-                    siteRepository.save(site);
+            for (SiteEntity siteEntity : siteList) {
+                if (siteEntity.getStatus().equals(Status.INDEXING)) {
+                    siteEntity.setStatus(Status.FAILED);
+                    siteEntity.setStatusTime(LocalDateTime.now());
+                    siteEntity.setLastError("Процесс индексации остановлен");
+                    siteRepository.save(siteEntity);
                 }
             }
-            return new IndexingResponse(true, "Процесс индексации остановлен");
         }
-        return new IndexingResponse(false, "Индексация не запущена");
+        return new IndexingResponse(true, "Процесс индексации остановлен");
     }
 
     @Override
@@ -108,10 +99,6 @@ public class IndexingServiceImpl implements IndexingService {
                 siteEntity.setStatusTime(LocalDateTime.now());
                 siteRepository.save(siteEntity);
             }
-
-            PageParser pageParser = new PageParser(siteEntity, url, pageRepository, siteRepository,
-                                                                    lemmaRepository, indexRepository);
-            pageParser.parsePage();
             return new IndexingResponse(true);
         }
         else {
@@ -137,8 +124,19 @@ public class IndexingServiceImpl implements IndexingService {
         forkJoinPool.execute(siteParser);
         forkJoinPool.shutdown();
 
-        siteEntity.setStatus(Status.INDEXED);
-        siteEntity.setStatusTime(LocalDateTime.now());
-        siteRepository.save(siteEntity);
+//        siteEntity.setStatus(Status.INDEXED);
+//        siteEntity.setStatusTime(LocalDateTime.now());
+//        siteRepository.save(siteEntity);
+
+    }
+
+    public boolean isIndexing() {
+        Iterable<SiteEntity> siteList = siteRepository.findAll();
+        for (SiteEntity site : siteList) {
+            if (site.getStatus().equals(Status.INDEXING)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
