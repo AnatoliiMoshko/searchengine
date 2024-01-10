@@ -11,11 +11,9 @@ import searchengine.dto.statistics.TotalStatistics;
 import searchengine.model.LemmaEntity;
 import searchengine.model.PageEntity;
 import searchengine.model.SiteEntity;
-import searchengine.model.Status;
 import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
-
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -32,7 +30,6 @@ public class StatisticsServiceImpl implements StatisticsService {
 
     @Override
     public StatisticsResponse getStatistics() {
-
         TotalStatistics total = new TotalStatistics();
         total.setSites(sites.getSites().size());
         total.setIndexing(true);
@@ -45,7 +42,7 @@ public class StatisticsServiceImpl implements StatisticsService {
             item.setName(site.getName());
             item.setUrl(site.getUrl());
             SiteEntity siteEntity =  getSiteFromRepository(site, siteRepository);
-            if(siteEntity != null && siteEntity.getStatus().equals(Status.INDEXED)) {
+            if(siteEntity != null) {
                 int pages = countPages(siteEntity, pageRepository);
                 int lemmas = countLemmas(siteEntity, lemmaRepository);
                 item.setPages(pages);

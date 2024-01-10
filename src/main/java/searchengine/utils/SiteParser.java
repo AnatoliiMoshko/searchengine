@@ -13,8 +13,6 @@ import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.IndexRepository;
 import searchengine.repositories.SiteRepository;
-
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.RecursiveAction;
 
@@ -93,12 +91,10 @@ public class SiteParser extends RecursiveAction {
                 tasks.add(siteParser);
             }
         }
+
         for (SiteParser task : tasks) {
             task.join();
         }
-        siteEntity.setStatus(Status.INDEXING);
-        siteEntity.setStatusTime(LocalDateTime.now());
-        siteRepository.save(siteEntity);
     }
 
     @SneakyThrows

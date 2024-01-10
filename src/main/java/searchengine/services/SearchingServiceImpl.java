@@ -93,7 +93,7 @@ public class SearchingServiceImpl implements SearchingService {
 
     private List<SearchData> generateSearchDataList(LinkedHashMap<PageEntity, Integer> sortedPages,
                                                     Set<String> lemmasFromQuery, int limit, int offset) {
-        limit = 100;
+        //limit = 100;
         if (offset != 0 && !sortedPages.isEmpty()) {
             sortedPages.remove(sortedPages.keySet().stream().findFirst().get());
         }
