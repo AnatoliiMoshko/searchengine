@@ -93,27 +93,47 @@ public class SearchingServiceImpl implements SearchingService {
 
     private List<SearchData> generateSearchDataList(LinkedHashMap<PageEntity, Integer> sortedPages,
                                                     Set<String> lemmasFromQuery, int limit, int offset) {
-        //limit = 100;
+
         if (offset != 0 && !sortedPages.isEmpty()) {
             sortedPages.remove(sortedPages.keySet().stream().findFirst().get());
         }
 
         List<SearchData> dataList = new ArrayList<>();
-        int count = 0;
+        List<SearchData> newDataList = new ArrayList<>();
         for (Map.Entry<PageEntity, Integer> entry : sortedPages.entrySet()) {
-            if (count < limit) {
-                dataList.add(generateSearchData(
-                                entry.getKey().getSiteID().getUrl(),
-                                entry.getKey().getSiteID().getName(),
-                                shortThePath(entry.getKey(), entry.getKey().getSiteID()),
-                                Jsoup.parse(entry.getKey().getContent()).title(),
-                                getSnippet(entry.getKey(), lemmasFromQuery),
-                                entry.getValue())
-                );
-                count++;
-            }
+             dataList.add(generateSearchData(
+                    entry.getKey().getSiteID().getUrl(),
+                    entry.getKey().getSiteID().getName(),
+                    shortThePath(entry.getKey(), entry.getKey().getSiteID()),
+                    Jsoup.parse(entry.getKey().getContent()).title(),
+                    getSnippet(entry.getKey(), lemmasFromQuery),
+                    entry.getValue())
+            );
         }
-        return dataList;
+        if (dataList.size() > 10) {
+            newDataList = dataList.subList(offset, offset + limit);
+        }
+
+        return newDataList;
+
+//        =====================как было==============================================
+//        List<SearchData> dataList = new ArrayList<>();
+//        int count = 0;
+//        for (Map.Entry<PageEntity, Integer> entry : sortedPages.entrySet()) {
+//            if (count < limit) {
+//                dataList.add(generateSearchData(
+//                                entry.getKey().getSiteID().getUrl(),
+//                                entry.getKey().getSiteID().getName(),
+//                                shortThePath(entry.getKey(), entry.getKey().getSiteID()),
+//                                Jsoup.parse(entry.getKey().getContent()).title(),
+//                                getSnippet(entry.getKey(), lemmasFromQuery),
+//                                entry.getValue())
+//                );
+//                count++;
+//            }
+//        }
+//        return dataList;
+//        ============================!!!!!!!!!!!!!!!!==================================
     }
 
     private String shortThePath(PageEntity page, SiteEntity site) {
