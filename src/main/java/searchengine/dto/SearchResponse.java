@@ -13,4 +13,10 @@ public class SearchResponse {
     private String error;
     private Integer count;
     private List<SearchData> data;
+
+    public SearchResponse(boolean result, Integer count, List<SearchData> data) {
+        this.result = result;
+        this.count = count;
+        this.data = data;
+    }
 }
