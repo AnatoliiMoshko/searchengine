@@ -100,19 +100,33 @@ public class SiteParser extends RecursiveAction {
     @SneakyThrows
     public synchronized List<String> collectLinks(String url) {
         List<String> linkList = new ArrayList<>();
-        linkList.add(url);
+            linkList.add(url);
 
         Elements links = document.select("a[href]");
         for (Element element : links) {
             String link = element.attr("abs:href");
-            if (!link.startsWith(url)) continue;
-            if (link.contains("#")) continue;
-            if (link.endsWith(".shtml") ||
+            if (!link.contains(url)) continue;
+            if (link.contains("&") ||
+                    link.contains("#") ||
+                    link.contains("?") ||
+                    link.contains("?page=") ||
+                    link.contains("?ref") ||
+                    link.contains("?main_click") ||
+                    link.endsWith(".shtml") ||
                     link.endsWith(".pdf") ||
                     link.endsWith(".xml") ||
-                    link.endsWith("?main_click") ||
-                    link.contains("?page=") ||
-                    link.contains("?ref")) continue;
+                    link.endsWith(".jpg") ||
+                    link.endsWith(".png") ||
+                    link.endsWith(".jpeg") ||
+                    link.endsWith(".jfif") ||
+                    link.endsWith(".doc") ||
+                    link.endsWith(".docx") ||
+                    link.endsWith(".xls") ||
+                    link.endsWith(".xlsx") ||
+                    link.endsWith(".pptx") ||
+                    link.endsWith(".rtf") ||
+                    link.endsWith(".mp4") ||
+                    link.endsWith(".gif")) continue;
             if (linkList.contains(link)) continue;
             linkList.add(link);
         }
