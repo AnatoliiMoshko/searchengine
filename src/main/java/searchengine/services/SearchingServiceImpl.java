@@ -46,7 +46,7 @@ public class SearchingServiceImpl implements SearchingService {
 
         LinkedHashMap<String, Integer> lemmasSortedByFrequency = sortLemmasByFrequency(lemmasFromQuery);
 
-        SearchResponse searchResponse;
+        SearchResponse generatedSearchDataList;
 
         LinkedHashMap<LemmaEntity, PageEntity> entitiesList = new LinkedHashMap<>();
 
@@ -56,8 +56,8 @@ public class SearchingServiceImpl implements SearchingService {
 
             LinkedHashMap<PageEntity, Integer> pagesByRelevance = countAbsoluteRank(entitiesList);
             LinkedHashMap<PageEntity, Integer> sortedPages = sortPagesByRelevance(pagesByRelevance);
-            List<SearchData> generatedSearchDataList = generateSearchDataList(sortedPages, lemmasFromQuery, limit, offset);
-            searchResponse = response(generatedSearchDataList);
+            generatedSearchDataList = generateSearchDataList(sortedPages, lemmasFromQuery, limit, offset);
+
         } else {
             for (Site site : sitesList.getSites()) {
                 System.out.println(">>> Поиск на сайте: " + site.getName());
@@ -66,11 +66,10 @@ public class SearchingServiceImpl implements SearchingService {
             }
             LinkedHashMap<PageEntity, Integer> pagesByRelevance = countAbsoluteRank(entitiesList);
             LinkedHashMap<PageEntity, Integer> sortedPages = sortPagesByRelevance(pagesByRelevance);
-            List<SearchData> generatedSearchDataList = generateSearchDataList(sortedPages, lemmasFromQuery, limit, offset);
-            searchResponse = response(generatedSearchDataList);
+            generatedSearchDataList = generateSearchDataList(sortedPages, lemmasFromQuery, limit, offset);
         }
         System.out.println("Окончание поиска: " + (System.currentTimeMillis() - start));
-        return searchResponse;
+        return generatedSearchDataList;
     }
 
     private LinkedHashMap<LemmaEntity, PageEntity> getEntitiesList(Set<String> lemmasFromQuery, SiteEntity site,
@@ -81,25 +80,21 @@ public class SearchingServiceImpl implements SearchingService {
         return compareFinalPagesAndLemmas(pagesFilteredByNextLemmas, lemmasFromQuery);
     }
 
-    private SearchResponse response(List<SearchData> searchData) {
-        return SearchResponse.builder().result(true).count(searchData.size()).data(searchData).build();
-    }
-
     private SearchData generateSearchData(String site, String siteName, String uri,
                                           String title, String snippet, float relevance) {
         return SearchData.builder().site(site).siteName(siteName).uri(uri).title(title)
                 .snippet(snippet).relevance(relevance).build();
     }
 
-    private List<SearchData> generateSearchDataList(LinkedHashMap<PageEntity, Integer> sortedPages,
+    private SearchResponse generateSearchDataList(LinkedHashMap<PageEntity, Integer> sortedPages,
                                                     Set<String> lemmasFromQuery, int limit, int offset) {
 
-        if (offset != 0 && !sortedPages.isEmpty()) {
+        if (offset != 0 || !sortedPages.isEmpty()) {
             sortedPages.remove(sortedPages.keySet().stream().findFirst().get());
         }
 
         List<SearchData> dataList = new ArrayList<>();
-        List<SearchData> newDataList = new ArrayList<>();
+        List<SearchData> newDataList;
         for (Map.Entry<PageEntity, Integer> entry : sortedPages.entrySet()) {
              dataList.add(generateSearchData(
                     entry.getKey().getSiteID().getUrl(),
@@ -110,30 +105,16 @@ public class SearchingServiceImpl implements SearchingService {
                     entry.getValue())
             );
         }
-        if (dataList.size() > 10) {
+
+        if (dataList.size() < limit) {
+            newDataList = dataList;
+        } else if (dataList.size() - offset < limit){
+            newDataList = dataList.subList(offset, dataList.size());
+        } else {
             newDataList = dataList.subList(offset, offset + limit);
         }
 
-        return newDataList;
-
-//        =====================как было==============================================
-//        List<SearchData> dataList = new ArrayList<>();
-//        int count = 0;
-//        for (Map.Entry<PageEntity, Integer> entry : sortedPages.entrySet()) {
-//            if (count < limit) {
-//                dataList.add(generateSearchData(
-//                                entry.getKey().getSiteID().getUrl(),
-//                                entry.getKey().getSiteID().getName(),
-//                                shortThePath(entry.getKey(), entry.getKey().getSiteID()),
-//                                Jsoup.parse(entry.getKey().getContent()).title(),
-//                                getSnippet(entry.getKey(), lemmasFromQuery),
-//                                entry.getValue())
-//                );
-//                count++;
-//            }
-//        }
-//        return dataList;
-//        ============================!!!!!!!!!!!!!!!!==================================
+        return new SearchResponse(true, dataList.size(), newDataList);
     }
 
     private String shortThePath(PageEntity page, SiteEntity site) {
