@@ -15,9 +15,7 @@ import searchengine.repositories.SiteRepository;
 import searchengine.utils.PageParser;
 import searchengine.utils.SiteParser;
 import java.time.LocalDateTime;
-import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 
@@ -125,15 +123,10 @@ public class IndexingServiceImpl implements IndexingService {
             siteEntity.setStatusTime(LocalDateTime.now());
             siteRepository.save(siteEntity);
 
-//            ConcurrentHashMap<String, Boolean> urlList = new ConcurrentHashMap<>();
-//            urlList.put(site.getUrl(), true);
-//            TreeSet<String> urlList = new TreeSet<>();
-//            urlList.add(site.getUrl());
-            CopyOnWriteArraySet<String> hrefList = new CopyOnWriteArraySet<>();
-            hrefList.add(site.getUrl());
+//            ConcurrentHashMap<String, Boolean> hrefList = new ConcurrentHashMap<>();
+//            hrefList.put(site.getUrl(), true);
 
             SiteParser siteParser = new SiteParser(site.getUrl(),
-                    //hrefList,
                     siteEntity,
                     pageRepository, siteRepository, lemmaRepository, indexRepository);
             forkJoinPool = new ForkJoinPool(Runtime.getRuntime().availableProcessors());

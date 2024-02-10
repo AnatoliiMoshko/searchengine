@@ -13,9 +13,9 @@ import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.IndexRepository;
 import searchengine.repositories.SiteRepository;
+
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.RecursiveAction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -23,9 +23,7 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 public class SiteParser extends RecursiveAction {
     private final String url;
-    //private final TreeSet<String> hrefList;
-    //private static final ConcurrentHashMap<String, Boolean> hrefList = new ConcurrentHashMap<>();
-    private static  CopyOnWriteArraySet<String> hrefList= new CopyOnWriteArraySet<>();
+    private static final ConcurrentHashMap<String, Boolean> hrefList = new ConcurrentHashMap<>();
     private final SiteEntity siteEntity;
     private final PageRepository pageRepository;
     private final SiteRepository siteRepository;
@@ -33,27 +31,11 @@ public class SiteParser extends RecursiveAction {
     private final IndexRepository indexRepository;
     private Document document;
 
-//    public SiteParser(String url,
-//                      //ConcurrentHashMap<String, Boolean> hrefList,
-//                      //CopyOnWriteArraySet<String> hrefList,
-//                      SiteEntity siteEntity,
-//                      PageRepository pageRepository,
-//                      SiteRepository siteRepository,
-//                      LemmaRepository lemmaRepository,
-//                      IndexRepository indexRepository) {
-//        this.url = url;
-//        this.siteEntity = siteEntity;
-//        this.pageRepository = pageRepository;
-//        this.siteRepository = siteRepository;
-//        this.lemmaRepository = lemmaRepository;
-//        this.indexRepository = indexRepository;
-//    }
-
     @Override
     @SneakyThrows
     protected void compute() {
 
-        Thread.sleep(250);
+        Thread.sleep(50);
         Connection connection = Jsoup.connect(url)
                 .ignoreContentType(true)
                 .userAgent(new UserAgent().getUserAgent())
@@ -64,6 +46,7 @@ public class SiteParser extends RecursiveAction {
             PageEntity page = new PageEntity();
             page.setSiteID(siteEntity);
             page.setPath(url);
+            //page.setPath(url.replaceAll("http(s)?://(www\\.)?[^/]*/?", "/"));
             page.setContent(String.valueOf(document));
             page.setCode(connection.response().statusCode());
             pageRepository.save(page);
@@ -99,18 +82,16 @@ public class SiteParser extends RecursiveAction {
         List<SiteParser> tasks = new ArrayList<>();
 
         for (String link : links) {
-            if (!hrefList.contains(link) && !links.isEmpty()) {
+            if (!hrefList.contains(link) || !links.isEmpty()) {
                 SiteParser siteParser = new SiteParser(
                         link,
-                        //hrefList,
                         siteEntity,
                         pageRepository,
                         siteRepository,
                         lemmaRepository,
                         indexRepository);
                 siteParser.fork();
-                //hrefList.put(link, true);
-                hrefList.add(link);
+                hrefList.put(link, true);
                 System.out.println("parsing " + link);
                 tasks.add(siteParser);
             }
@@ -124,45 +105,41 @@ public class SiteParser extends RecursiveAction {
     @SneakyThrows
     public  synchronized List<String> collectLinks(String url) {
 
-//        String root = "example.com";
-//
-//        String url = "http://www.example.com/path/page.html";
-//
-        String regex = "(https?://)?(www/.)?" + Pattern.quote(url) + "(/.*)?";
+        String regex = "(http(s)?://)?(www/.)?(/.*)?";
+        //String regex = "/^((ftp|http|https)://)?(www\\.)?([A-Za-zА-Яа-я0-9]{1}[A-Za-zА-Яа-я0-9\\-]*\\.?)*\\.{1}[A-Za-zА-Яа-я0-9-]{2,8}(/([\\w#!:.?+=&%@!\\-/])*)?/";
 
         Pattern pattern = Pattern.compile(regex);
 
         Matcher matcher = pattern.matcher(url);
 
-
         List<String> linkList = new ArrayList<>();
-        linkList.add(String.valueOf(matcher));
+        linkList.add(matcher.toString());
 
-        Elements links = document.select("a[href]");
+        Elements links = document.select("a");
         for (Element element : links) {
             String link = element.attr("abs:href");
-            if (!link.contains(url)) continue;
+            if (link.contains(matcher.toString())) continue;
             if (link.contains("&") ||
-                    link.contains("#") ||
-                    link.contains("?") ||
-                    link.contains("?page=") ||
-                    link.contains("?ref") ||
-                    link.contains("?main_click") ||
-                    link.endsWith(".shtml") ||
-                    link.endsWith(".pdf") ||
-                    link.endsWith(".xml") ||
-                    link.endsWith(".jpg") ||
-                    link.endsWith(".png") ||
-                    link.endsWith(".jpeg") ||
-                    link.endsWith(".jfif") ||
-                    link.endsWith(".doc") ||
-                    link.endsWith(".docx") ||
-                    link.endsWith(".xls") ||
-                    link.endsWith(".xlsx") ||
-                    link.endsWith(".pptx") ||
-                    link.endsWith(".rtf") ||
-                    link.endsWith(".mp4") ||
-                    link.endsWith(".gif")) continue;
+                        link.contains("#") ||
+                        link.contains("?") ||
+                        link.contains("?page=") ||
+                        link.contains("?ref") ||
+                        link.contains("?main_click") ||
+                        link.endsWith(".shtml") ||
+                        link.endsWith(".pdf") ||
+                        link.endsWith(".xml") ||
+                        link.endsWith(".jpg") ||
+                        link.endsWith(".png") ||
+                        link.endsWith(".jpeg") ||
+                        link.endsWith(".jfif") ||
+                        link.endsWith(".doc") ||
+                        link.endsWith(".docx") ||
+                        link.endsWith(".xls") ||
+                        link.endsWith(".xlsx") ||
+                        link.endsWith(".pptx") ||
+                        link.endsWith(".rtf") ||
+                        link.endsWith(".mp4") ||
+                        link.endsWith(".gif")) continue;
             if (linkList.contains(link)) continue;
             linkList.add(link);
         }
