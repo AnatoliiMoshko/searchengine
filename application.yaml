@@ -15,9 +15,9 @@ spring:
         show_sql: true
 indexing-settings:
   sites:
-    - url: https://et-cetera.ru/mobile/
-      name: EtCetera
-    - url: http://www.playback.ru/
-      name: Playback
+#    - url: https://et-cetera.ru/
+#      name: EtCetera
     - url: https://www.svetlovka.ru/
       name: Svetlovka
+    - url: http://www.playback.ru/
+      name: Playback
