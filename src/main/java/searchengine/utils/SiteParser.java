@@ -17,8 +17,6 @@ import searchengine.repositories.SiteRepository;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.RecursiveAction;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @RequiredArgsConstructor
 public class SiteParser extends RecursiveAction {
@@ -35,7 +33,7 @@ public class SiteParser extends RecursiveAction {
     @SneakyThrows
     protected void compute() {
 
-        Thread.sleep(50);
+        Thread.sleep(5);
         Connection connection = Jsoup.connect(url)
                 .ignoreContentType(true)
                 .userAgent(new UserAgent().getUserAgent())
@@ -46,7 +44,6 @@ public class SiteParser extends RecursiveAction {
             PageEntity page = new PageEntity();
             page.setSiteID(siteEntity);
             page.setPath(url);
-            //page.setPath(url.replaceAll("http(s)?://(www\\.)?[^/]*/?", "/"));
             page.setContent(String.valueOf(document));
             page.setCode(connection.response().statusCode());
             pageRepository.save(page);
@@ -82,7 +79,7 @@ public class SiteParser extends RecursiveAction {
         List<SiteParser> tasks = new ArrayList<>();
 
         for (String link : links) {
-            if (!hrefList.contains(link) || !links.isEmpty()) {
+            if (!hrefList.contains(link) && !links.isEmpty()) {
                 SiteParser siteParser = new SiteParser(
                         link,
                         siteEntity,
@@ -105,20 +102,13 @@ public class SiteParser extends RecursiveAction {
     @SneakyThrows
     public  synchronized List<String> collectLinks(String url) {
 
-        String regex = "(http(s)?://)?(www/.)?(/.*)?";
-        //String regex = "/^((ftp|http|https)://)?(www\\.)?([A-Za-zА-Яа-я0-9]{1}[A-Za-zА-Яа-я0-9\\-]*\\.?)*\\.{1}[A-Za-zА-Яа-я0-9-]{2,8}(/([\\w#!:.?+=&%@!\\-/])*)?/";
-
-        Pattern pattern = Pattern.compile(regex);
-
-        Matcher matcher = pattern.matcher(url);
-
         List<String> linkList = new ArrayList<>();
-        linkList.add(matcher.toString());
+        linkList.add(url);
 
-        Elements links = document.select("a");
+        Elements links = document.select("a[href]");
         for (Element element : links) {
             String link = element.attr("abs:href");
-            if (link.contains(matcher.toString())) continue;
+            if (!link.contains(url.replaceAll("(http(s)?://)?(www/.)?(/.*)?", ""))) continue;
             if (link.contains("&") ||
                         link.contains("#") ||
                         link.contains("?") ||
