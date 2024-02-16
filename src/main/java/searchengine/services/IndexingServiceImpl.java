@@ -15,7 +15,6 @@ import searchengine.repositories.SiteRepository;
 import searchengine.utils.PageParser;
 import searchengine.utils.SiteParser;
 import java.time.LocalDateTime;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 
@@ -122,9 +121,6 @@ public class IndexingServiceImpl implements IndexingService {
             siteEntity.setStatus(Status.INDEXING);
             siteEntity.setStatusTime(LocalDateTime.now());
             siteRepository.save(siteEntity);
-
-//            ConcurrentHashMap<String, Boolean> hrefList = new ConcurrentHashMap<>();
-//            hrefList.put(site.getUrl(), true);
 
             SiteParser siteParser = new SiteParser(site.getUrl(),
                     siteEntity,
