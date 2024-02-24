@@ -15,13 +15,14 @@ import searchengine.repositories.IndexRepository;
 import searchengine.repositories.SiteRepository;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.RecursiveAction;
 
 @RequiredArgsConstructor
 public class SiteParser extends RecursiveAction {
     private final String url;
-    private static final ConcurrentHashMap<String, Boolean> hrefList = new ConcurrentHashMap<>();
+    private static final CopyOnWriteArrayList<String> hrefList = new CopyOnWriteArrayList<>();
     private final SiteEntity siteEntity;
     private final PageRepository pageRepository;
     private final SiteRepository siteRepository;
@@ -88,7 +89,7 @@ public class SiteParser extends RecursiveAction {
                         lemmaRepository,
                         indexRepository);
                 siteParser.fork();
-                hrefList.put(link, true);
+                hrefList.add(link);
                 System.out.println("parsing " + link);
                 tasks.add(siteParser);
             }
@@ -110,26 +111,26 @@ public class SiteParser extends RecursiveAction {
             String link = element.attr("abs:href");
             if (!link.contains(url.replaceAll("(http(s)?://)?(www/.)?(/.*)?", ""))) continue;
             if (link.contains("&") ||
-                        link.contains("#") ||
-                        link.contains("?") ||
-                        link.contains("?page=") ||
-                        link.contains("?ref") ||
-                        link.contains("?main_click") ||
-                        link.endsWith(".shtml") ||
-                        link.endsWith(".pdf") ||
-                        link.endsWith(".xml") ||
-                        link.endsWith(".jpg") ||
-                        link.endsWith(".png") ||
-                        link.endsWith(".jpeg") ||
-                        link.endsWith(".jfif") ||
-                        link.endsWith(".doc") ||
-                        link.endsWith(".docx") ||
-                        link.endsWith(".xls") ||
-                        link.endsWith(".xlsx") ||
-                        link.endsWith(".pptx") ||
-                        link.endsWith(".rtf") ||
-                        link.endsWith(".mp4") ||
-                        link.endsWith(".gif")) continue;
+                    link.contains("#") ||
+                    link.contains("?") ||
+                    link.contains("?page=") ||
+                    link.contains("?ref") ||
+                    link.contains("?main_click") ||
+                    link.endsWith(".shtml") ||
+                    link.endsWith(".pdf") ||
+                    link.endsWith(".xml") ||
+                    link.endsWith(".jpg") ||
+                    link.endsWith(".png") ||
+                    link.endsWith(".jpeg") ||
+                    link.endsWith(".jfif") ||
+                    link.endsWith(".doc") ||
+                    link.endsWith(".docx") ||
+                    link.endsWith(".xls") ||
+                    link.endsWith(".xlsx") ||
+                    link.endsWith(".pptx") ||
+                    link.endsWith(".rtf") ||
+                    link.endsWith(".mp4") ||
+                    link.endsWith(".gif")) continue;
             if (linkList.contains(link)) continue;
             linkList.add(link);
         }
