@@ -76,7 +76,7 @@ public class SearchingServiceImpl implements SearchingService {
                                                                    LinkedHashMap<String, Integer> lemmasSortedByFrequency) {
         List<PageEntity> pagesListFromFirstLemma = getPageEntityListFromFirstLemma(lemmasSortedByFrequency, site);
         List<PageEntity> pagesFilteredByNextLemmas = filterPagesByOtherLemmas(lemmasSortedByFrequency,
-                                                                              pagesListFromFirstLemma);
+                pagesListFromFirstLemma);
         return compareFinalPagesAndLemmas(pagesFilteredByNextLemmas, lemmasFromQuery);
     }
 
@@ -87,16 +87,16 @@ public class SearchingServiceImpl implements SearchingService {
     }
 
     private SearchResponse generateSearchDataList(LinkedHashMap<PageEntity, Integer> sortedPages,
-                                                    Set<String> lemmasFromQuery, int limit, int offset) {
+                                                  Set<String> lemmasFromQuery, int limit, int offset) {
 
         if (offset != 0 || !sortedPages.isEmpty()) {
-            sortedPages.remove(sortedPages.keySet().stream().findFirst().get());
+            sortedPages.remove(sortedPages.keySet().stream().findFirst().orElseThrow());
         }
 
         List<SearchData> dataList = new ArrayList<>();
         List<SearchData> newDataList;
         for (Map.Entry<PageEntity, Integer> entry : sortedPages.entrySet()) {
-             dataList.add(generateSearchData(
+            dataList.add(generateSearchData(
                     entry.getKey().getSiteID().getUrl(),
                     entry.getKey().getSiteID().getName(),
                     shortThePath(entry.getKey(), entry.getKey().getSiteID()),
@@ -226,7 +226,7 @@ public class SearchingServiceImpl implements SearchingService {
         for (PageEntity page : pagesFilteredByNextLemmas) {
             for (String lemma : lemmasFromQuery) {
                 indexRepository.findByPageIDAndLemmaID_Lemma(page, lemma)
-                               .forEach(searchIndex ->
+                        .forEach(searchIndex ->
                                 finalPagesAndLemmasList.put(searchIndex.getLemmaID(), searchIndex.getPageID()));
             }
         }

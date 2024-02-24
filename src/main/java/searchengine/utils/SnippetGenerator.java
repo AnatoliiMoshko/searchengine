@@ -30,10 +30,6 @@ public class SnippetGenerator {
                 .replaceAll("\\s+", " ");
     }
 
-    public void setQueryWords(List<String> queryWords) {
-        this.queryWords = queryWords;
-    }
-
     public Map<Integer, String> getWordsAndPos( String text) {
         Map<Integer, String> words = new HashMap<>();
         int pos = 0;
