@@ -70,7 +70,7 @@ public class Lemmatization {
         return lemmas;
     }
 
-    private synchronized List<String> splitRusText(String text) {
+    private List<String> splitRusText(String text) {
         String[] words = text.toLowerCase()
                 .replaceAll("[^А-яЁё\\s]", "")
                 .trim()
@@ -78,7 +78,7 @@ public class Lemmatization {
         return new ArrayList<>(List.of(words));
     }
 
-    private synchronized List<String> splitEngText(String text) {
+    private List<String> splitEngText(String text) {
         String[] words = text.toLowerCase()
                 .replaceAll("[^A-z\\s]", "")
                 .trim()
@@ -86,7 +86,7 @@ public class Lemmatization {
         return new ArrayList<>(List.of(words));
     }
 
-    private synchronized boolean isNotRusWord(String word) {
+    private boolean isNotRusWord(String word) {
         List<String> rusWordInfo = russianLuceneMorphology.getMorphInfo(word);
         for (String property : particlesRus) {
             if (rusWordInfo.toString().toUpperCase().contains(property)) {
@@ -96,7 +96,7 @@ public class Lemmatization {
         return false;
     }
 
-    private synchronized boolean isNotEngWord(String word) {
+    private boolean isNotEngWord(String word) {
         List<String> engWordInfo = englishLuceneMorphology.getMorphInfo(word);
         for (String property : particlesEng) {
             if (engWordInfo.toString().toUpperCase().contains(property)) {
