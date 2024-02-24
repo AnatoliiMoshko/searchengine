@@ -108,7 +108,7 @@ public class IndexingServiceImpl implements IndexingService {
         }
     }
 
-    public IndexingResponse indexSite() {
+    private IndexingResponse indexSite() {
         siteRepository.deleteAll();
         pageRepository.deleteAll();
         lemmaRepository.deleteAll();
